@@ -1,0 +1,114 @@
+{
+  "metadata": {
+    "name": "Temporal preference retention benchmark",
+    "description": "A compact benchmark for stale preference suppression and current-fact retrieval.",
+    "domain": "executive technical assistant",
+    "created_for": "Memanto issue #639"
+  },
+  "memories": [
+    {
+      "id": "m001",
+      "session_id": "session-01",
+      "timestamp": "2026-01-04T09:00:00Z",
+      "memory_type": "preference",
+      "title": "Initial database preference",
+      "content": "Nora initially prefers Azure PostgreSQL for the AtlasPane Kubernetes dashboard because her team already has Azure credits.",
+      "tags": ["database", "cloud", "atlaspane", "stale"]
+    },
+    {
+      "id": "m002",
+      "session_id": "session-01",
+      "timestamp": "2026-01-04T09:15:00Z",
+      "memory_type": "goal",
+      "title": "Offline-first goal",
+      "content": "AtlasPane must keep a local read-only cache so cluster status stays visible during a network outage.",
+      "tags": ["resilience", "offline", "atlaspane"]
+    },
+    {
+      "id": "m003",
+      "session_id": "session-02",
+      "timestamp": "2026-01-14T13:20:00Z",
+      "memory_type": "decision",
+      "title": "Database cloud changed to GCP",
+      "content": "Nora changed the current database target to GCP Cloud SQL because the launch customer moved the deployment to GKE.",
+      "tags": ["database", "cloud", "atlaspane", "current"]
+    },
+    {
+      "id": "m004",
+      "session_id": "session-02",
+      "timestamp": "2026-01-14T13:35:00Z",
+      "memory_type": "preference",
+      "title": "Latency budget",
+      "content": "The dashboard should keep p95 status-refresh latency below 900 milliseconds for clusters under 500 pods.",
+      "tags": ["latency", "slo", "atlaspane"]
+    },
+    {
+      "id": "m005",
+      "session_id": "session-03",
+      "timestamp": "2026-02-03T10:05:00Z",
+      "memory_type": "preference",
+      "title": "Old alert color preference",
+      "content": "Earlier notes said restarted containers could use an amber border in the cluster list.",
+      "tags": ["ui", "alerts", "stale"]
+    },
+    {
+      "id": "m006",
+      "session_id": "session-03",
+      "timestamp": "2026-02-03T10:25:00Z",
+      "memory_type": "decision",
+      "title": "Current alert color rule",
+      "content": "Nora updated the current UI rule: amber is only for degraded pods, while restarted containers should use a neutral gray indicator.",
+      "tags": ["ui", "alerts", "current"]
+    },
+    {
+      "id": "m007",
+      "session_id": "session-04",
+      "timestamp": "2026-02-20T16:10:00Z",
+      "memory_type": "commitment",
+      "title": "Deferred feature",
+      "content": "The team postponed multi-cluster cost forecasting until after the first enterprise pilot.",
+      "tags": ["roadmap", "deferred", "atlaspane"]
+    },
+    {
+      "id": "m008",
+      "session_id": "session-04",
+      "timestamp": "2026-02-20T16:35:00Z",
+      "memory_type": "fact",
+      "title": "Pilot segment",
+      "content": "The first enterprise pilot targets platform teams that run regulated healthcare workloads.",
+      "tags": ["pilot", "customer", "healthcare"]
+    }
+  ],
+  "queries": [
+    {
+      "id": "q001",
+      "question": "Which database platform should AtlasPane target now?",
+      "expected_terms": ["GCP Cloud SQL", "current database target"],
+      "stale_terms": ["Azure PostgreSQL"]
+    },
+    {
+      "id": "q002",
+      "question": "What should amber indicate in the current UI rule?",
+      "expected_terms": ["degraded pods", "amber is only"],
+      "stale_terms": ["restarted containers could use an amber border"]
+    },
+    {
+      "id": "q003",
+      "question": "What is the p95 status-refresh latency budget?",
+      "expected_terms": ["900 milliseconds", "p95"],
+      "stale_terms": []
+    },
+    {
+      "id": "q004",
+      "question": "Which roadmap item was postponed?",
+      "expected_terms": ["multi-cluster cost forecasting", "postponed"],
+      "stale_terms": []
+    },
+    {
+      "id": "q005",
+      "question": "Who is the first enterprise pilot for?",
+      "expected_terms": ["regulated healthcare workloads", "platform teams"],
+      "stale_terms": []
+    }
+  ]
+}
