@@ -55,6 +55,7 @@ _MEM0_CATEGORY_TO_TYPE: dict[str, str] = {
 }
 
 _DEFAULT_TITLE_CHARS = 80
+_MAX_TITLE_CHARS = 100  # MemoryRecord.title max_length
 _MAX_CONTENT_CHARS = 10000  # MemoryRecord.content max_length
 _MAX_FOOTER_CHARS = 800  # cap supporting-data footer so it never dominates
 
@@ -454,7 +455,13 @@ def map_okf(export: dict[str, Any]) -> list[dict[str, Any]]:
         source = x_memanto.get("source") or "okf"
         created_at = _parse_dt(entry.get("timestamp"))
 
+        original_title = None
+        if title and len(title) > _MAX_TITLE_CHARS:
+            original_title = title
+            title = title[: _MAX_TITLE_CHARS - 3].rstrip() + "..."
+
         footer_items: list[tuple[str, Any]] = [
+            ("Original OKF title", original_title),
             ("OKF source", entry.get("source_path")),
             # Only surface the OKF type when we couldn't map it to a slot.
             ("OKF type", okf_type if not memory_type else None),
