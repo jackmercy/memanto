@@ -10,6 +10,7 @@ from fastapi import Cookie, Header, HTTPException, Request, Response
 
 from memanto.app.models.session import Session
 from memanto.app.services.session_service import get_session_service
+from memanto.app.utils.client_identity import set_memanto_session
 from memanto.app.utils.errors import (
     InvalidSessionTokenError,
     SessionExpiredError,
@@ -280,6 +281,10 @@ def get_current_session(
             if x_session_token:
                 response.headers["X-Session-Token"] = renewed.session_token
 
+        # Bind the session for activity logging: the memory services below
+        # only receive an agent_id and cannot tell which session a request
+        # belongs to.
+        set_memanto_session(session.session_id)
         return session
 
     except SessionExpiredError as e:

@@ -2154,7 +2154,7 @@ class TestMEMANTOArchitecture:
 
 
 def test_conflict_report_handles_non_object_json_items(tmp_path, monkeypatch):
-    """Malformed conflict-item schemas should be preserved instead of crashing."""
+    """Malformed agent conflict payloads should degrade to an empty report."""
     import json
     from unittest.mock import MagicMock
 
@@ -2169,10 +2169,21 @@ def test_conflict_report_handles_non_object_json_items(tmp_path, monkeypatch):
     )
 
     client = MagicMock()
-    client.answer.generate.return_value = {"answer": '["not an object", 1]'}
+    client.base_url = "https://api.moorcheh.ai/v1"
+    client.api_key = "test-key"
     monkeypatch.setattr(module, "get_moorcheh_client", lambda: client)
     monkeypatch.setattr(module, "get_active_llm_model", lambda _: "test-model")
+    monkeypatch.setattr(module, "parse_backend", lambda _: module.Backend.CLOUD)
     monkeypatch.setattr(module.Path, "home", classmethod(lambda cls: tmp_path))
+    monkeypatch.setattr(
+        module,
+        "detect_conflicts_via_agent",
+        lambda **_: {
+            "date": "2026-06-28",
+            "conflicts": [{"conflict": False, "type": "compatible"}],
+            "count": 0,
+        },
+    )
 
     service = module.DailyAnalysisService(
         sessions_dir=sessions_dir,
@@ -2182,14 +2193,13 @@ def test_conflict_report_handles_non_object_json_items(tmp_path, monkeypatch):
     result = service.generate_conflict_report("agent-1", "2026-06-28")
 
     assert result["status"] == "success"
-    assert result["conflict_count"] == 1
+    assert result["conflict_count"] == 0
 
     conflicts_path = (
         tmp_path / ".memanto" / "conflicts" / ("agent-1_2026-06-28_conflicts.json")
     )
     conflicts = json.loads(conflicts_path.read_text(encoding="utf-8"))
-    assert conflicts[0]["title"] == "Unparsed conflict report"
-    assert conflicts[0]["description"] == '["not an object", 1]'
+    assert conflicts == []
 
 
 def test_daily_summary_omits_unset_active_ai_model(tmp_path, monkeypatch):
@@ -2223,7 +2233,7 @@ def test_daily_summary_omits_unset_active_ai_model(tmp_path, monkeypatch):
 
 
 def test_conflict_report_omits_unset_active_ai_model(tmp_path, monkeypatch):
-    """On-prem conflict detection should omit ai_model when no active model is set."""
+    """Cloud conflict detection should omit ai_model when no active model is set."""
     from unittest.mock import MagicMock
 
     from memanto.app.services import daily_analysis_service as module
@@ -2237,10 +2247,19 @@ def test_conflict_report_omits_unset_active_ai_model(tmp_path, monkeypatch):
     )
 
     client = MagicMock()
-    client.answer.generate.return_value = {"answer": "[]"}
+    client.base_url = "https://api.moorcheh.ai/v1"
+    client.api_key = "test-key"
+    captured: dict[str, object] = {}
+
+    def fake_detect(**kwargs):
+        captured.update(kwargs)
+        return {"date": "2026-06-28", "conflicts": [], "count": 0}
+
     monkeypatch.setattr(module, "get_moorcheh_client", lambda: client)
     monkeypatch.setattr(module, "get_active_llm_model", lambda _: None)
+    monkeypatch.setattr(module, "parse_backend", lambda _: module.Backend.CLOUD)
     monkeypatch.setattr(module.Path, "home", classmethod(lambda cls: tmp_path))
+    monkeypatch.setattr(module, "detect_conflicts_via_agent", fake_detect)
 
     service = module.DailyAnalysisService(
         sessions_dir=sessions_dir,
@@ -2249,8 +2268,7 @@ def test_conflict_report_omits_unset_active_ai_model(tmp_path, monkeypatch):
     result = service.generate_conflict_report("agent-1", "2026-06-28")
 
     assert result["status"] == "success"
-    call_kwargs = client.answer.generate.call_args.kwargs
-    assert "ai_model" not in call_kwargs
+    assert "ai_model" not in captured
 
 
 class TestServerConfigUrl:

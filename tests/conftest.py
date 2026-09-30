@@ -30,6 +30,23 @@ def cleanup_test_sessions():
 
 
 @pytest.fixture(autouse=True)
+def reset_client_identity():
+    """Clear the bound calling tool between tests.
+
+    ``memanto recall --tool X`` binds a ContextVar and never resets it - correct
+    for a CLI process that is about to exit, but inside pytest one test's
+    ``--tool`` would otherwise decide the attribution of every test after it.
+    """
+    from memanto.app.utils.client_identity import set_client, set_memanto_session
+
+    set_client(None)
+    set_memanto_session(None)
+    yield
+    set_client(None)
+    set_memanto_session(None)
+
+
+@pytest.fixture(autouse=True)
 def reset_auto_parse(monkeypatch):
     """Ensure tests are not affected by the local smart_parse config setting."""
     from memanto.app.config import settings
